@@ -1,0 +1,12 @@
+https://en.wikipedia.org/wiki/Serial_Peripheral_Interface
+4 signalss:
+	SCLK, SCK
+		Clock, controlled by master
+	MOSI, SIMO, MTSR
+		Master Out Slave In
+	MISO, SOMI, MRST
+		Master In Slave Out
+	SS, SSEL, CS, CE, nSS, /SS, SS#
+		Slave Select, active low by master
+	mosi & miso may also be call SDO/DO/DOUT/SO or SDI/DI/DIN/SI on appropriate device
+	

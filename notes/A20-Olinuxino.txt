@@ -1,0 +1,12 @@
+= A20 Olinuxino =
+small open source computer
+
+with possibly and all optionally:
+	NAND
+	SPI FLASH
+	EMMC FLASH
+	SATA DISK
+	USB
+
+SPI FLASH is most interesting as it is not easily accessible by the end-user yet.
+	See SPI.txt for SPI summary.

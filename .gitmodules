@@ -1,0 +1,3 @@
+[submodule "submodules/spi-dev-lib"]
+	path = submodules/spi-dev-lib
+	url = https://github.com/bhuvanchandra/spi-dev-lib.git
