@@ -4,5 +4,7 @@ Layers:
 	Proto
 		SPI proto is already coded in kernel and in libraries, but will need a way
 		to plug in our own wire layer.
+		Maybe better to not use kernel so as not to duplicate possible bugs or idiosyncracies,
+		but rather verify they are not present?
 	Data
 		The kernel does some of this, but we'll want to manage some ourself.

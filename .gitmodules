@@ -1,3 +1,3 @@
-[submodule "submodules/spi-dev-lib"]
-	path = submodules/spi-dev-lib
-	url = https://github.com/bhuvanchandra/spi-dev-lib.git
+[submodule "submodules/sunxi-tools"]
+	path = submodules/sunxi-tools
+	url = https://github.com/linux-sunxi/sunxi-tools.git
