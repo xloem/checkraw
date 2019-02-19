@@ -12,3 +12,8 @@ include_directories ("${PROJECT_SOURCE_DIR}/submodules/sunxi-tools/include")
 include_directories ("${PROJECT_SOURCE_DIR}/include")
 add_subdirectory ("${CMAKE_CURRENT_SOURCE_DIR}/src")
 add_library (checkraw submodule-setup ${SOURCE})
+link_libraries(checkraw)
+
+enable_testing()
+add_executable(test-bitbang-sunxi test/test-bitbang-sunxi.c)
+add_test(bitbang-sunxi test-bitbang-sunxi)

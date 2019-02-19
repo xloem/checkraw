@@ -99,7 +99,7 @@ int bitbang_sunxi_read(bitbang_t * dev, unsigned pin)
 	{
 		return result;
 	}
-	pio_get(dev->handle, pin, port, &pio);
+	pio_get(dev->handle, port, pin, &pio);
 	return pio.data;
 }
 
@@ -116,6 +116,6 @@ checkraw_error bitbang_sunxi_write(bitbang_t * dev, unsigned pin, int isHigh)
 	pio.pull = -1;
 	pio.drv_level = -1;
 	pio.data = isHigh;
-	pio_set(dev->handle, pin, port, &pio);
+	pio_set(dev->handle, port, pin, &pio);
 	return CRE_SUCCESS;
 }
