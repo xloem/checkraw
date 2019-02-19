@@ -1,6 +1,6 @@
-#include <checkraw/drivers/bitbang-sunxi.h>
-#include <checkraw/errors.h>
+#include "../bitbang-driver.h"
 
+/* embed the sunxi-tools pio sourcecode, but drop the main function */
 #define main __dummy_bitbang_sunxi_main
 #include "../../submodules/sunxi-tools/pio.c"
 #undef main
@@ -8,7 +8,7 @@
 #define PIO_PINS_PER_PORT 32
 #define PIO_PIN_CT (PIO_PINS_PER_PORT * PIO_NR_PORTS)
 
-checkraw_error bitbang_sunxi_init(bitbang_t * dev)
+static checkraw_error bitbang_sunxi_tools_init(bitbang_driver_t * dev)
 {
 	char * buf;
 	int pagesize = sysconf(_SC_PAGESIZE);
@@ -28,13 +28,11 @@ checkraw_error bitbang_sunxi_init(bitbang_t * dev)
 	}
 	buf += offset;
 
-	dev->pin_ct = PIO_PIN_CT;
-	dev->features = BF_PULL_FLOAT | BF_PULL_UP | BF_PULL_DOWN;
 	dev->handle = buf;
 	return CRE_SUCCESS;
 }
 
-void bitbang_sunxi_destroy(bitbang_t * dev)
+static void bitbang_sunxi_tools_destroy(bitbang_driver_t * dev)
 {
 	int pagesize = sysconf(_SC_PAGESIZE);
 	int offset = 0x01c20800 & (pagesize-1);
@@ -44,11 +42,11 @@ void bitbang_sunxi_destroy(bitbang_t * dev)
 	dev->handle = NULL;
 }
 
-inline static checkraw_error pin2portpin(bitbang_t * dev, unsigned pin, unsigned * port, unsigned * portpin)
+inline static checkraw_error pin2portpin(bitbang_driver_t * dev, unsigned pin, unsigned * port, unsigned * portpin)
 {
-	if (dev == NULL || dev->handle == NULL) 
+	if (dev->handle == NULL) 
 	{
-		return cr_error(CRE_INVALID_STATE, "sunxi gpio use", "device handle is NULL", dev != NULL);
+		return cr_error(CRE_INVALID_STATE, "sunxi gpio use", "device handle is NULL", 0);
 	}
 	if (pin > PIO_PIN_CT)
 	{
@@ -59,7 +57,7 @@ inline static checkraw_error pin2portpin(bitbang_t * dev, unsigned pin, unsigned
 	return CRE_SUCCESS;
 }
 
-checkraw_error bitbang_sunxi_mode(bitbang_t * dev, unsigned pin, int is_input, bitbang_feature_t pull)
+static checkraw_error bitbang_sunxi_tools_mode(bitbang_driver_t * dev, unsigned pin, int is_input, bitbang_feature_t pull)
 {
 	struct pio_status pio;
 	unsigned port;
@@ -90,7 +88,7 @@ checkraw_error bitbang_sunxi_mode(bitbang_t * dev, unsigned pin, int is_input, b
 	return CRE_SUCCESS;
 }
 
-int bitbang_sunxi_read(bitbang_t * dev, unsigned pin)
+static int bitbang_sunxi_tools_read(bitbang_driver_t * dev, unsigned pin)
 {
 	struct pio_status pio;
 	unsigned port;
@@ -103,7 +101,7 @@ int bitbang_sunxi_read(bitbang_t * dev, unsigned pin)
 	return pio.data;
 }
 
-checkraw_error bitbang_sunxi_write(bitbang_t * dev, unsigned pin, int isHigh)
+static checkraw_error bitbang_sunxi_tools_write(bitbang_driver_t * dev, unsigned pin, int isHigh)
 {
 	struct pio_status pio;
 	unsigned port;
@@ -118,4 +116,19 @@ checkraw_error bitbang_sunxi_write(bitbang_t * dev, unsigned pin, int isHigh)
 	pio.data = isHigh;
 	pio_set(dev->handle, port, pin, &pio);
 	return CRE_SUCCESS;
+}
+
+bitbang_driver_t bitbang_sunxi_tools_driver()
+{
+	bitbang_driver_t driver;
+	driver.device.name = "sunxi-tools pio";
+	driver.device.pin_ct = PIO_PIN_CT;
+	driver.device.features = BF_PULL_FLOAT | BF_PULL_UP | BF_PULL_DOWN;
+	driver.handle = NULL;
+	driver.init = bitbang_sunxi_tools_init;
+	driver.destroy = bitbang_sunxi_tools_destroy;
+	driver.mode = bitbang_sunxi_tools_mode;
+	driver.write = bitbang_sunxi_tools_write;
+	driver.read = bitbang_sunxi_tools_read;
+	return driver;
 }

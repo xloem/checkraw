@@ -1,5 +1,8 @@
 #pragma once
 
+#include <checkraw/errors.h>
+#include <stddef.h>
+
 typedef enum
 {
 	BF_NONE = 0,
@@ -12,6 +15,18 @@ typedef struct
 {
 	unsigned pin_ct;
 	unsigned features;
-	void * handle;
+	char const * name;
 } bitbang_t;
 
+size_t bitbang_nr_drivers();
+bitbang_t * bitbang_driver(size_t idx);
+
+checkraw_error bitbang_init(bitbang_t * dev);
+
+void bitbang_destroy(bitbang_t * dev);
+
+checkraw_error bitbang_mode(bitbang_t * dev, unsigned pin, int is_input, bitbang_feature_t pull);
+
+checkraw_error bitbang_write(bitbang_t * dev, unsigned pin, int isHigh);
+
+int bitbang_read(bitbang_t * dev, unsigned pin);

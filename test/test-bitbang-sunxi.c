@@ -3,7 +3,7 @@
 /* TODO: this checks against sysfs, but sysfs does not update direction when changed elsewhere, so these checks are commented out.
 	recommend instead adding pyA20 as a submodule and checking against its gpio_lib.* sources */
 
-#include <checkraw/drivers/bitbang-sunxi.h>
+#include <checkraw/bitbang.h>
 #include <glob.h>
 #include <string.h>
 
@@ -46,10 +46,21 @@ char * sysfsread(char * path, char * file)
 
 int main()
 {
-	bitbang_t dev;
+	bitbang_t * dev = NULL;
 	checkraw_error result;
+	size_t i;
 
-	check(bitbang_sunxi_init(&dev), ==, CRE_SUCCESS);
+	/* find device */
+	for (i = 0; i < bitbang_nr_drivers(); ++ i)
+	{
+		if (0 == strcmp(bitbang_driver(i)->name, "sunxi-tools pio"))
+		{
+			dev = bitbang_driver(i);
+			break;
+		}
+	}
+
+	check(bitbang_init(dev), ==, CRE_SUCCESS);
 
 	/* verify API-set values are reported by sysfs interface */
 	/* export pin 1 */
@@ -72,29 +83,29 @@ int main()
 
 	/* read tests */
 	int pin_value;
-	check(bitbang_sunxi_mode(&dev, pin, 1, BF_PULL_DOWN), ==, CRE_SUCCESS);
+	check(bitbang_mode(dev, pin, 1, BF_PULL_DOWN), ==, CRE_SUCCESS);
 	//check(strcmp(sysfsread(gpio_path, "direction"), "in\n"), ==, 0);
 	pin_value = sysfsread(gpio_path, "value")[0] - '0';
-	check(bitbang_sunxi_read(&dev, pin), ==, pin_value);
-	check(bitbang_sunxi_mode(&dev, pin, 1, BF_PULL_UP), ==, 0);
+	check(bitbang_read(dev, pin), ==, pin_value);
+	check(bitbang_mode(dev, pin, 1, BF_PULL_UP), ==, 0);
 	//check(strcmp(sysfsread(gpio_path, "direction"), "in\n"), ==, 0);
 	pin_value = sysfsread(gpio_path, "value")[0] - '0';
-	check(bitbang_sunxi_read(&dev, pin), ==, pin_value);
+	check(bitbang_read(dev, pin), ==, pin_value);
 
 	/* write tests */
-	check(bitbang_sunxi_mode(&dev, pin, 0, BF_PULL_FLOAT), ==, CRE_SUCCESS);
+	check(bitbang_mode(dev, pin, 0, BF_PULL_FLOAT), ==, CRE_SUCCESS);
 	//check(strcmp(sysfsread(gpio_path, "direction"), "out\n"), ==, 0);
-	check(bitbang_sunxi_write(&dev, pin, 0), ==, CRE_SUCCESS);
+	check(bitbang_write(dev, pin, 0), ==, CRE_SUCCESS);
 	check(strcmp(sysfsread(gpio_path, "value"), "0\n"), ==, 0);
-	check(bitbang_sunxi_write(&dev, pin, 1), ==, CRE_SUCCESS);
+	check(bitbang_write(dev, pin, 1), ==, CRE_SUCCESS);
 	check(strcmp(sysfsread(gpio_path, "value"), "1\n"), ==, 0);
 
 	/* leave pin in neutral state */
-	bitbang_sunxi_mode(&dev, pin, 1, BF_PULL_FLOAT);
+	bitbang_mode(dev, pin, 1, BF_PULL_FLOAT);
 
 	/* cleanup */
 	globfree(&glob_result);
-	bitbang_sunxi_destroy(&dev);
+	bitbang_destroy(dev);
 
 	return 0;
 }
