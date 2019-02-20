@@ -2,13 +2,15 @@
 
 /* embed the sunxi-tools pio sourcecode, but drop the main function */
 #define main __dummy_bitbang_sunxi_main
+#define _BSD_SOURCE /* defines from sunxi-tools makefile that source assumes are present */
+#define _DEFAULT_SOURCE
 #include "../../submodules/sunxi-tools/pio.c"
 #undef main
 
 #define PIO_PINS_PER_PORT 32
 #define PIO_PIN_CT (PIO_PINS_PER_PORT * PIO_NR_PORTS)
 
-static checkraw_error bitbang_sunxi_tools_init(bitbang_driver_t * dev)
+static error_code_t bitbang_sunxi_tools_init(bitbang_driver_t * dev)
 {
 	char * buf;
 	int pagesize = sysconf(_SC_PAGESIZE);
@@ -18,18 +20,18 @@ static checkraw_error bitbang_sunxi_tools_init(bitbang_driver_t * dev)
 
 	if (-1 == fd)
 	{
-		return cr_errno(CRE_OPEN_FAILURE, "opening /dev/mem");
+		return error_errno_raise(ERROR_OPEN_FAILURE, "opening /dev/mem");
 	}
 	buf = mmap(NULL, (0x800 + pagesize - 1) & ~(pagesize-1), PROT_WRITE|PROT_READ, MAP_SHARED, fd, addr);
 	close(fd);
 	if (MAP_FAILED == buf)
 	{
-		return cr_errno(CRE_OPEN_FAILURE, "mmaping pio region");
+		return error_errno_raise(ERROR_OPEN_FAILURE, "mmaping pio region");
 	}
 	buf += offset;
 
 	dev->handle = buf;
-	return CRE_SUCCESS;
+	return ERROR_SUCCESS;
 }
 
 static void bitbang_sunxi_tools_destroy(bitbang_driver_t * dev)
@@ -42,19 +44,19 @@ static void bitbang_sunxi_tools_destroy(bitbang_driver_t * dev)
 	dev->handle = NULL;
 }
 
-inline static checkraw_error pin2portpin(bitbang_driver_t * dev, unsigned pin, unsigned * port, unsigned * portpin)
+inline static error_code_t pin2portpin(bitbang_driver_t * dev, unsigned pin, unsigned * port, unsigned * portpin)
 {
 	if (dev->handle == NULL) 
 	{
-		return cr_error(CRE_INVALID_STATE, "sunxi gpio use", "device handle is NULL", 0);
+		return error_raise(ERROR_INVALID_STATE, "sunxi-tools gpio", "device handle is NULL", 0);
 	}
 	if (pin > PIO_PIN_CT)
 	{
-		return cr_error(CRE_INVALID_ARG, "sunxi gpio use", "invalid pin", pin);
+		return error_raise(ERROR_INVALID_ARG, "sunxi-tools gpio", "invalid pin", pin);
 	}
 	*port = pin / PIO_PINS_PER_PORT;
 	*portpin = pin % PIO_PINS_PER_PORT;
-	return CRE_SUCCESS;
+	return ERROR_SUCCESS;
 }
 
 static int bitbang_sunxi_tools_pin_by_name(bitbang_driver_t * dev, char const * name)
@@ -63,7 +65,7 @@ static int bitbang_sunxi_tools_pin_by_name(bitbang_driver_t * dev, char const * 
 	unsigned port, pin;
 	if (len < 3 || len > 4 || (name[0] != 'P' && name[0] != 'p'))
 	{
-		return cr_error(CRE_INVALID_ARG, "pin_by_name", "sunxi pins are named P<bank><##> like PB17", len);
+		return error_raise(ERROR_INVALID_ARG, "sunxi-tools pin_by_name", "sunxi pins are named P<bank><##> like PB17", len);
 	}
 	/* '(c & 31) - 1' converts a letter to an int in a case-insensitive way */
 	port = (name[1] & 31) - 1;
@@ -76,18 +78,19 @@ static int bitbang_sunxi_tools_pin_by_name(bitbang_driver_t * dev, char const * 
 	pin += port * PIO_PINS_PER_PORT;
 	if (pin > PIO_PIN_CT)
 	{
-		return cr_error(CRE_INVALID_ARG, "pin_by_name", "pin out of range", pin);
+		return error_raise(ERROR_INVALID_ARG, "sunxi-tools pin_by_name", "pin out of range", pin);
 	}
 
 	return pin;
+	(void)dev; /* unused */
 }
 
 static char const * bitbang_sunxi_tools_name_of_pin(bitbang_driver_t * dev, unsigned pin)
 {
 	static char ret[5] = "PA00";
 	unsigned port;
-	checkraw_error result = pin2portpin(dev, pin, &port, &pin);
-	if (result != CRE_SUCCESS)
+	error_code_t result = pin2portpin(dev, pin, &port, &pin);
+	if (result != ERROR_SUCCESS)
 	{
 		return NULL;
 	}
@@ -97,12 +100,12 @@ static char const * bitbang_sunxi_tools_name_of_pin(bitbang_driver_t * dev, unsi
 	return ret;
 }
 
-static checkraw_error bitbang_sunxi_tools_mode(bitbang_driver_t * dev, unsigned pin, int is_input, bitbang_feature_t pull)
+static error_code_t bitbang_sunxi_tools_mode(bitbang_driver_t * dev, unsigned pin, int is_input, bitbang_feature_t pull)
 {
 	struct pio_status pio;
 	unsigned port;
-	checkraw_error result = pin2portpin(dev, pin, &port, &pin);
-	if (result != CRE_SUCCESS)
+	error_code_t result = pin2portpin(dev, pin, &port, &pin);
+	if (result != ERROR_SUCCESS)
 	{
 		return result;
 	}
@@ -125,15 +128,15 @@ static checkraw_error bitbang_sunxi_tools_mode(bitbang_driver_t * dev, unsigned 
 	pio.drv_level = is_input ? 0 : 1;
 	pio.data = -1;
 	pio_set(dev->handle, port, pin, &pio);
-	return CRE_SUCCESS;
+	return ERROR_SUCCESS;
 }
 
 static int bitbang_sunxi_tools_read(bitbang_driver_t * dev, unsigned pin)
 {
 	struct pio_status pio;
 	unsigned port;
-	checkraw_error result = pin2portpin(dev, pin, &port, &pin);
-	if (result != CRE_SUCCESS)
+	error_code_t result = pin2portpin(dev, pin, &port, &pin);
+	if (result != ERROR_SUCCESS)
 	{
 		return result;
 	}
@@ -141,12 +144,12 @@ static int bitbang_sunxi_tools_read(bitbang_driver_t * dev, unsigned pin)
 	return pio.data;
 }
 
-static checkraw_error bitbang_sunxi_tools_write(bitbang_driver_t * dev, unsigned pin, int isHigh)
+static error_code_t bitbang_sunxi_tools_write(bitbang_driver_t * dev, unsigned pin, int isHigh)
 {
 	struct pio_status pio;
 	unsigned port;
-	checkraw_error result = pin2portpin(dev, pin, &port, &pin);
-	if (result != CRE_SUCCESS)
+	error_code_t result = pin2portpin(dev, pin, &port, &pin);
+	if (result != ERROR_SUCCESS)
 	{
 		return result;
 	}
@@ -155,7 +158,7 @@ static checkraw_error bitbang_sunxi_tools_write(bitbang_driver_t * dev, unsigned
 	pio.drv_level = -1;
 	pio.data = isHigh;
 	pio_set(dev->handle, port, pin, &pio);
-	return CRE_SUCCESS;
+	return ERROR_SUCCESS;
 }
 
 bitbang_driver_t bitbang_sunxi_tools_driver()

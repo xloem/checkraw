@@ -1,21 +1,24 @@
 #pragma once
 
-typedef enum {
-	CRE_SUCCESS = 0,
-	CRE_OPEN_FAILURE = -1,
-	CRE_SETUP_FAILURE = -2,
-	CRE_INVALID_STATE = -3,
-	CRE_INVALID_ARG = -4,
-} checkraw_error;
-
-static inline checkraw_error cr_error(checkraw_error code, char const * task, char const * result, int subcode)
+typedef enum
 {
-	/* TODO: copy strings into static storage for reporting */
-	return code;
-}
+	ERROR_SUCCESS = 0,
+	ERROR_OPEN_FAILURE = -1,
+	ERROR_SETUP_FAILURE = -2,
+	ERROR_INVALID_STATE = -3,
+	ERROR_INVALID_ARG = -4
+} error_code_t;
 
-static inline checkraw_error cr_errno(checkraw_error code, char const * task)
+typedef struct
 {
-	/* TODO: turn errno into a result string */
-	return cr_error(code, task, "STUB errno unused", 0);
-}
+	error_code_t code;
+	char const * task;
+	char const * result;
+	int subcode;
+} error_t;
+
+error_code_t error_raise(error_code_t code, char const * task, char const * result, int subcode);
+error_code_t error_errno_raise(error_code_t code, char const * task);
+error_t * error_last();
+char const * error_descr(error_t * error);
+

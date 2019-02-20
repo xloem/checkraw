@@ -47,7 +47,6 @@ char * sysfsread(char * path, char * file)
 int main()
 {
 	bitbang_t * dev = NULL;
-	checkraw_error result;
 	size_t i;
 
 	/* find device */
@@ -60,7 +59,7 @@ int main()
 		}
 	}
 
-	check(bitbang_init(dev), ==, CRE_SUCCESS);
+	check(bitbang_init(dev), ==, ERROR_SUCCESS);
 
 	/* verify API-set values are reported by sysfs interface */
 	/* export pin 1 */
@@ -79,7 +78,7 @@ int main()
 
 	/* read tests */
 	int pin_value;
-	check(bitbang_mode(dev, pin, 1, BF_PULL_DOWN), ==, CRE_SUCCESS);
+	check(bitbang_mode(dev, pin, 1, BF_PULL_DOWN), ==, ERROR_SUCCESS);
 	//check(strcmp(sysfsread(gpio_path, "direction"), "in\n"), ==, 0);
 	pin_value = sysfsread(gpio_path, "value")[0] - '0';
 	check(bitbang_read(dev, pin), ==, pin_value);
@@ -89,11 +88,11 @@ int main()
 	check(bitbang_read(dev, pin), ==, pin_value);
 
 	/* write tests */
-	check(bitbang_mode(dev, pin, 0, BF_PULL_FLOAT), ==, CRE_SUCCESS);
+	check(bitbang_mode(dev, pin, 0, BF_PULL_FLOAT), ==, ERROR_SUCCESS);
 	//check(strcmp(sysfsread(gpio_path, "direction"), "out\n"), ==, 0);
-	check(bitbang_write(dev, pin, 0), ==, CRE_SUCCESS);
+	check(bitbang_write(dev, pin, 0), ==, ERROR_SUCCESS);
 	check(strcmp(sysfsread(gpio_path, "value"), "0\n"), ==, 0);
-	check(bitbang_write(dev, pin, 1), ==, CRE_SUCCESS);
+	check(bitbang_write(dev, pin, 1), ==, ERROR_SUCCESS);
 	check(strcmp(sysfsread(gpio_path, "value"), "1\n"), ==, 0);
 
 	/* leave pin in neutral state */

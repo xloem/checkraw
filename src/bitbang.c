@@ -1,10 +1,10 @@
 #include "bitbang-driver.h"
 
-checkraw_error bitbang_init(bitbang_t * dev)
+error_code_t bitbang_init(bitbang_t * dev)
 {
 	if (dev == NULL)
 	{
-		return cr_error(CRE_INVALID_STATE, "bitbang_init", "device is NULL", 0);
+		return error_raise(ERROR_INVALID_STATE, "bitbang_init", "device is NULL", 0);
 	}
 	return ((bitbang_driver_t*)dev)->init((bitbang_driver_t*)dev);
 }
@@ -22,7 +22,7 @@ int bitbang_pin_by_name(bitbang_t * dev, char const * name)
 {
 	if (dev == NULL)
 	{
-		return cr_error(CRE_INVALID_STATE, "bitbang_pin_by_name", "device is NULL", 0);
+		return error_raise(ERROR_INVALID_STATE, "bitbang_pin_by_name", "device is NULL", 0);
 	}
 	return ((bitbang_driver_t*)dev)->pin_by_name((bitbang_driver_t*)dev, name);
 }
@@ -36,20 +36,20 @@ char const * bitbang_name_of_pin(bitbang_t * dev, unsigned pin)
 	return ((bitbang_driver_t*)dev)->name_of_pin((bitbang_driver_t*)dev, pin);
 }
 
-checkraw_error bitbang_mode(bitbang_t * dev, unsigned pin, int is_input, bitbang_feature_t pull)
+error_code_t bitbang_mode(bitbang_t * dev, unsigned pin, int is_input, bitbang_feature_t pull)
 {
 	if (dev == NULL)
 	{
-		return cr_error(CRE_INVALID_STATE, "bitbang_mode", "device is NULL", 0);
+		return error_raise(ERROR_INVALID_STATE, "bitbang_mode", "device is NULL", 0);
 	}
 	return ((bitbang_driver_t*)dev)->mode((bitbang_driver_t*)dev, pin, is_input, pull);
 }
 
-checkraw_error bitbang_write(bitbang_t * dev, unsigned pin, int isHigh)
+error_code_t bitbang_write(bitbang_t * dev, unsigned pin, int isHigh)
 {
 	if (dev == NULL)
 	{
-		return cr_error(CRE_INVALID_STATE, "bitbang_write", "device is NULL", 0);
+		return error_raise(ERROR_INVALID_STATE, "bitbang_write", "device is NULL", 0);
 	}
 	return ((bitbang_driver_t*)dev)->write((bitbang_driver_t*)dev, pin, isHigh);
 }
@@ -58,7 +58,7 @@ int bitbang_read(bitbang_t * dev, unsigned pin)
 {
 	if (dev == NULL)
 	{
-		return cr_error(CRE_INVALID_STATE, "bitbang_read", "device is NULL", 0);
+		return error_raise(ERROR_INVALID_STATE, "bitbang_read", "device is NULL", 0);
 	}
 	return ((bitbang_driver_t*)dev)->read((bitbang_driver_t*)dev, pin);
 }

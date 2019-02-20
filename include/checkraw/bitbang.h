@@ -21,12 +21,12 @@ typedef struct
 size_t bitbang_nr_drivers();
 bitbang_t * bitbang_driver(size_t idx);
 
-checkraw_error bitbang_init(bitbang_t * dev);
+error_code_t bitbang_init(bitbang_t * dev);
 void bitbang_destroy(bitbang_t * dev);
 
 int bitbang_pin_by_name(bitbang_t * dev, char const * name);
 const char * bitbang_name_of_pin(bitbang_t * dev, unsigned pin);
 
-checkraw_error bitbang_mode(bitbang_t * dev, unsigned pin, int is_input, bitbang_feature_t pull);
-checkraw_error bitbang_write(bitbang_t * dev, unsigned pin, int isHigh);
+error_code_t bitbang_mode(bitbang_t * dev, unsigned pin, int is_input, bitbang_feature_t pull);
+error_code_t bitbang_write(bitbang_t * dev, unsigned pin, int isHigh);
 int bitbang_read(bitbang_t * dev, unsigned pin);

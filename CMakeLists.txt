@@ -1,6 +1,8 @@
 cmake_minimum_required (VERSION 2.6)
 project (checkraw)
 
+set(CMAKE_C_FLAGS "-Wall -pedantic -Wextra --std=c99 ${CMAKE_C_FLAGS}")
+
 add_custom_command(
 	OUTPUT submodule-setup
 	COMMAND git -C "${PROJECT_SOURCE_DIR}" submodule update --init
