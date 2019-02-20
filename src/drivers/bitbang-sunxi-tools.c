@@ -57,6 +57,46 @@ inline static checkraw_error pin2portpin(bitbang_driver_t * dev, unsigned pin, u
 	return CRE_SUCCESS;
 }
 
+static int bitbang_sunxi_tools_pin_by_name(bitbang_driver_t * dev, char const * name)
+{
+	size_t len = strlen(name);
+	unsigned port, pin;
+	if (len < 3 || len > 4 || (name[0] != 'P' && name[0] != 'p'))
+	{
+		return cr_error(CRE_INVALID_ARG, "pin_by_name", "sunxi pins are named P<bank><##> like PB17", len);
+	}
+	/* '(c & 31) - 1' converts a letter to an int in a case-insensitive way */
+	port = (name[1] & 31) - 1;
+	pin = name[2] - '0';
+	if (len > 3)
+	{
+		pin = pin * 10 + (name[3] - '0');
+	}
+
+	pin += port * PIO_PINS_PER_PORT;
+	if (pin > PIO_PIN_CT)
+	{
+		return cr_error(CRE_INVALID_ARG, "pin_by_name", "pin out of range", pin);
+	}
+
+	return pin;
+}
+
+static char const * bitbang_sunxi_tools_name_of_pin(bitbang_driver_t * dev, unsigned pin)
+{
+	static char ret[5] = "PA00";
+	unsigned port;
+	checkraw_error result = pin2portpin(dev, pin, &port, &pin);
+	if (result != CRE_SUCCESS)
+	{
+		return NULL;
+	}
+	ret[1] = 'A' + port;
+	ret[2] = '0' + pin / 10;
+	ret[3] = '0' + (pin % 10);
+	return ret;
+}
+
 static checkraw_error bitbang_sunxi_tools_mode(bitbang_driver_t * dev, unsigned pin, int is_input, bitbang_feature_t pull)
 {
 	struct pio_status pio;
@@ -127,6 +167,8 @@ bitbang_driver_t bitbang_sunxi_tools_driver()
 	driver.handle = NULL;
 	driver.init = bitbang_sunxi_tools_init;
 	driver.destroy = bitbang_sunxi_tools_destroy;
+	driver.pin_by_name = bitbang_sunxi_tools_pin_by_name;
+	driver.name_of_pin = bitbang_sunxi_tools_name_of_pin;
 	driver.mode = bitbang_sunxi_tools_mode;
 	driver.write = bitbang_sunxi_tools_write;
 	driver.read = bitbang_sunxi_tools_read;

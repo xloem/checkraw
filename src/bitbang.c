@@ -18,6 +18,24 @@ void bitbang_destroy(bitbang_t * dev)
 	((bitbang_driver_t*)dev)->destroy((bitbang_driver_t*)dev);
 }
 
+int bitbang_pin_by_name(bitbang_t * dev, char const * name)
+{
+	if (dev == NULL)
+	{
+		return cr_error(CRE_INVALID_STATE, "bitbang_pin_by_name", "device is NULL", 0);
+	}
+	return ((bitbang_driver_t*)dev)->pin_by_name((bitbang_driver_t*)dev, name);
+}
+
+char const * bitbang_name_of_pin(bitbang_t * dev, unsigned pin)
+{
+	if (dev == NULL)
+	{
+		return NULL;
+	}
+	return ((bitbang_driver_t*)dev)->name_of_pin((bitbang_driver_t*)dev, pin);
+}
+
 checkraw_error bitbang_mode(bitbang_t * dev, unsigned pin, int is_input, bitbang_feature_t pull)
 {
 	if (dev == NULL)

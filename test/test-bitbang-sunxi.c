@@ -72,11 +72,7 @@ int main()
 	check(glob_result.gl_pathc, ==, 1);
 
 	char * gpio_path = glob_result.gl_pathv[0];
-	size_t gpio_path_len = strlen(gpio_path);
-
-	/* '(c & 31) - 1' converts a letter to an int in a case-insensitive way */
-	unsigned port = (gpio_path[gpio_path_len-2] & 31) - 1;
-	unsigned pin = port * 32 + (gpio_path[gpio_path_len-1] - '0');
+	unsigned pin = bitbang_pin_by_name(dev, strrchr(gpio_path, '_') + 1);
 
 	/* setup for test */
 	sysfswrite(gpio_path, "active_low", "0");
